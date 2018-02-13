@@ -3,7 +3,7 @@ import pycuda.autoinit
 from pycuda.compiler import SourceModule
 import numpy as np
 import matplotlib.pyplot as plt
-import matplotlib.animation as animation
+from matplotlib.animation import FuncAnimation
 
 dx = dy = 0.1
 D = 4.
@@ -35,9 +35,9 @@ mod = SourceModule("""
 def animate(data, im):
     im.set_data(data)
 
-def step(u0,u):
+def step(u0, u, nsteps):
     euler = mod.get_function("euler")
-    for i in range(1000):
+    for i in range(nsteps):
         euler(cuda.In(u0), cuda.Out(u), 
             block=(threads_per_block, threads_per_block, 1), grid=(nx//threads_per_block, ny//threads_per_block, 1) )
         u0 = u.copy()
@@ -60,11 +60,11 @@ if __name__ == "__main__":
     fig.subplots_adjust(right=0.85)
     cbar_ax = fig.add_axes([0.9, 0.15, 0.03, 0.7])
     cbar_ax.set_xlabel('$T$ / K', labelpad=20)
-    im = ax.imshow(u, cmap=plt.get_cmap('hot'), vmin=Tcool,vmax=Thot)
+    im = ax.imshow(u.reshape((nx,ny)), cmap=plt.get_cmap('hot'), vmin=Tcool,vmax=Thot)
     fig.colorbar(im, cax=cbar_ax)
     ax.set_axis_off()
     ax.set_title("Mapa de Calor")
 
-    ani = animation.FuncAnimation( fig, animate, step(u0,u), 
-        interval=1, repeat=True,repeat_delay=1, fargs=(im,))
+    ani = FuncAnimation( fig, animate, step(u0, u, nsteps), 
+        interval=1, save_count=nsteps, repeat=True,repeat_delay=1, fargs=(im,))
     ani.save('animation.mp4', fps=20, writer="ffmpeg", codec="libx264")

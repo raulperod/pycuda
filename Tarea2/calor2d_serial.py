@@ -1,6 +1,6 @@
 import numpy as np
 import matplotlib.pyplot as plt
-import matplotlib.animation as animation
+from matplotlib.animation import FuncAnimation
 
 dx = dy = 0.1
 D = 4.
@@ -22,8 +22,8 @@ def do_timestep(u0, u):
 def animate(data, im):
     im.set_data(data)
 
-def step(u0,u):
-    for i in range(1000):
+def step(u0, u, nsteps):
+    for i in range(nsteps):
         u0, data = do_timestep(u0, u)
         yield data
 
@@ -46,6 +46,6 @@ if __name__ == "__main__":
     ax.set_axis_off()
     ax.set_title("Mapa de Calor")
 
-    ani = animation.FuncAnimation( fig, animate, step(u0,u), 
-        interval=1, repeat=True,repeat_delay=1, fargs=(im,))
+    ani = FuncAnimation( fig, animate, step(u0, u, nsteps), 
+        interval=1, save_count=nsteps, repeat=True,repeat_delay=1, fargs=(im,))
     ani.save('animation.mp4', fps=20, writer="ffmpeg", codec="libx264")
