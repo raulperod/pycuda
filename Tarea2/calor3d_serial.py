@@ -5,7 +5,7 @@ from matplotlib.animation import FuncAnimation
 dx = dy = dz = 0.1
 D = 4.
 Tcool, Thot = 300, 700
-nx, ny, nz = 32, 32, 32
+nx, ny, nz = 64, 64, 64
 dx2, dy2, dz2 = dx*dx, dy*dy, dz*dz
 dt = dx2 * dy2 * dz2 / (3 * D * (dx2 + dy2 + dz2))
 
@@ -21,11 +21,33 @@ def do_timestep(u0, u):
     u0 = u.copy()
     return u0, u
 
-def execute(u0, u, nsteps=100):
-    for _ in range(nsteps):
+def animate(data, im):
+    im.set_data(data)
+
+def step(u0, u, nsteps):
+    for i in range(nsteps):
         u0, u = do_timestep(u0, u)
-    
-    print(u0.reshape((nx, ny, nz)))
+        yield get_plane(u, z=32)
+
+def get_plane(u, x=0, y=0, z=0, fix='z'):
+    return ([ [u[z+nz*(j+i*ny)] for j in range(ny) ] for i in range(nx) ] if fix is 'z'
+        else [ [u[k+nz*(y+i*ny)] for k in range(nz) ] for i in range(nx) ] if fix is 'y'
+        else [ [u[k+nz*(j+x*ny)] for k in range(nz) ] for j in range(ny) ])
+
+def execute(u0, u, nsteps=100):
+    # Config
+    fig, ax = plt.subplots()
+    fig.subplots_adjust(right=0.85)
+    cbar_ax = fig.add_axes([0.9, 0.15, 0.03, 0.7])
+    cbar_ax.set_xlabel('$T$ / K', labelpad=20)
+    im = ax.imshow(get_plane(u, z=32), cmap=plt.get_cmap('hot'), vmin=Tcool,vmax=Thot)
+    fig.colorbar(im, cax=cbar_ax)
+    ax.set_axis_off()
+    ax.set_title("Mapa de Calor")
+
+    ani = FuncAnimation( fig, animate, step(u0, u, nsteps), 
+        interval=1, save_count=nsteps, repeat=True,repeat_delay=1, fargs=(im,))
+    ani.save('calor3d.mp4', fps=20, writer="ffmpeg", codec="libx264")
     
 if __name__ == "__main__":
     r, cx, cy, cz = 2, 3, 3, 3 

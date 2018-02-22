@@ -67,4 +67,4 @@ if __name__ == "__main__":
 
     ani = FuncAnimation( fig, animate, step(u0, u, nsteps), 
         interval=1, save_count=nsteps, repeat=True,repeat_delay=1, fargs=(im,))
-    ani.save('animation.mp4', fps=20, writer="ffmpeg", codec="libx264")
+    ani.save('calor2d.mp4', fps=20, writer="ffmpeg", codec="libx264")
