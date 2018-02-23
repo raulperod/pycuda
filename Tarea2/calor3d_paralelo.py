@@ -44,7 +44,7 @@ def step(u0, u, nsteps):
             block=(threads_per_block, threads_per_block, threads_per_block), 
             grid=(nx//threads_per_block, ny//threads_per_block, nz//threads_per_block) )
         u0 = u.copy()    
-        yield get_plane(pos, z=32)
+        yield get_plane(u, pos=32)
 
 def get_plane(u, pos=0, fix='z'):
     return ([ [u[pos+nz*(j+i*ny)] for j in range(ny) ] for i in range(nx) ] if fix is 'z'
@@ -67,7 +67,7 @@ def execute(u0, u, nsteps=5000):
     ani.save('calor3d.mp4', fps=20, writer="ffmpeg", codec="libx264")
     
 if __name__ == "__main__":
-    r, cx, cy, cz = 3, 3, 3, 3 
+    r, cx, cy, cz = 3, 5, 5, 5 
     r2 = r**2
 
     a0 = [ (Thot if ((i*dx-cx)**2 + (j*dy-cy)**2 + (k*dz-cz)**2) < r2 else Tcool) for i in range(nx) for j in range(ny) for k in range(nz) ]

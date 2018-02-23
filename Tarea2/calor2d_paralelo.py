@@ -54,7 +54,7 @@ if __name__ == "__main__":
     u0 = np.array(a0).astype(np.float32)
     u = np.array(a).astype(np.float32)
     # Numero de iteraciones
-    nsteps = 150
+    nsteps = 5000
     # Configuracion
     fig, ax = plt.subplots()
     fig.subplots_adjust(right=0.85)
