@@ -5,7 +5,7 @@ from matplotlib.animation import FuncAnimation
 dx = dy = dz = 0.1
 D = 4.
 Tcool, Thot = 300, 700
-nx, ny, nz = 64, 64, 64
+nx, ny, nz = 128, 128, 128
 dx2, dy2, dz2 = dx*dx, dy*dy, dz*dz
 dt = dx2 * dy2 * dz2 / (3 * D * (dx2 + dy2 + dz2))
 
@@ -34,7 +34,7 @@ def get_plane(u, x=0, y=0, z=0, fix='z'):
         else [ [u[k+nz*(y+i*ny)] for k in range(nz) ] for i in range(nx) ] if fix is 'y'
         else [ [u[k+nz*(j+x*ny)] for k in range(nz) ] for j in range(ny) ])
 
-def execute(u0, u, nsteps=100):
+def execute(u0, u, nsteps=10):
     # Config
     fig, ax = plt.subplots()
     fig.subplots_adjust(right=0.85)
@@ -50,7 +50,7 @@ def execute(u0, u, nsteps=100):
     ani.save('calor3d.mp4', fps=20, writer="ffmpeg", codec="libx264")
     
 if __name__ == "__main__":
-    r, cx, cy, cz = 2, 3, 3, 3 
+    r, cx, cy, cz = 3, 5, 5, 5 
     r2 = r**2
 
     a0 = [ (Thot if ((i*dx-cx)**2 + (j*dy-cy)**2 + (k*dz-cz)**2) < r2 else Tcool) for i in range(nx) for j in range(ny) for k in range(nz) ]
