@@ -29,10 +29,10 @@ def step(u0, u, nsteps):
         u0, u = do_timestep(u0, u)
         yield get_plane(u, z=32)
 
-def get_plane(u, x=0, y=0, z=0, fix='z'):
-    return ([ [u[z+nz*(j+i*ny)] for j in range(ny) ] for i in range(nx) ] if fix is 'z'
-        else [ [u[k+nz*(y+i*ny)] for k in range(nz) ] for i in range(nx) ] if fix is 'y'
-        else [ [u[k+nz*(j+x*ny)] for k in range(nz) ] for j in range(ny) ])
+def get_plane(u, pos=0, fix='z'):
+    return ([ [u[pos+nz*(j+i*ny)] for j in range(ny) ] for i in range(nx) ] if fix is 'z'
+        else [ [u[k+nz*(pos+i*ny)] for k in range(nz) ] for i in range(nx) ] if fix is 'y'
+        else [ [u[k+nz*(j+pos*ny)] for k in range(nz) ] for j in range(ny) ])
 
 def execute(u0, u, nsteps=10):
     # Config

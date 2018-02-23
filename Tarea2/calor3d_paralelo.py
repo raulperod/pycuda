@@ -44,12 +44,12 @@ def step(u0, u, nsteps):
             block=(threads_per_block, threads_per_block, threads_per_block), 
             grid=(nx//threads_per_block, ny//threads_per_block, nz//threads_per_block) )
         u0 = u.copy()    
-        yield get_plane(u, z=32)
+        yield get_plane(pos, z=32)
 
-def get_plane(u, x=0, y=0, z=0, fix='z'):
-    return ([ [u[z+nz*(j+i*ny)] for j in range(ny) ] for i in range(nx) ] if fix is 'z'
-        else [ [u[k+nz*(y+i*ny)] for k in range(nz) ] for i in range(nx) ] if fix is 'y'
-        else [ [u[k+nz*(j+x*ny)] for k in range(nz) ] for j in range(ny) ])
+def get_plane(u, pos=0, fix='z'):
+    return ([ [u[pos+nz*(j+i*ny)] for j in range(ny) ] for i in range(nx) ] if fix is 'z'
+        else [ [u[k+nz*(pos+i*ny)] for k in range(nz) ] for i in range(nx) ] if fix is 'y'
+        else [ [u[k+nz*(j+pos*ny)] for k in range(nz) ] for j in range(ny) ])
 
 def execute(u0, u, nsteps=5000):
     # Config
@@ -57,7 +57,7 @@ def execute(u0, u, nsteps=5000):
     fig.subplots_adjust(right=0.85)
     cbar_ax = fig.add_axes([0.9, 0.15, 0.03, 0.7])
     cbar_ax.set_xlabel('$T$ / K', labelpad=20)
-    im = ax.imshow(get_plane(u, z=32), cmap=plt.get_cmap('hot'), vmin=Tcool,vmax=Thot)
+    im = ax.imshow(get_plane(u, pos=32), cmap=plt.get_cmap('hot'), vmin=Tcool,vmax=Thot)
     fig.colorbar(im, cax=cbar_ax)
     ax.set_axis_off()
     ax.set_title("Mapa de Calor")
