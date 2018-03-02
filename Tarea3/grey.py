@@ -42,14 +42,14 @@ def grayscale(image):
         
     return vector
 
-def serial(input_name='test_2.jpg', output_name='test_out.jpg'):
+def serial(input_name='test.jpg', output_name='test_out.jpg'):
     image = imread(input_name)
     # convert image to grayscale
     image_greyscale = grayscale(image).reshape(image.shape)
     # save image
     imsave(output_name, image_greyscale)
 
-def parallel(input_name="test_2.jpg", output_name="test_out.jpg"):
+def parallel(input_name="test.jpg", output_name="test_out.jpg"):
     # get kernel
     greyscale_kernel = mod.get_function("greyscale")    
     # get image    
