@@ -9,16 +9,16 @@ TPB = 16
 mod = SourceModule("""
     #include <stdio.h>
     #define CHANNELS 3
-    #define BLUR_SIZE 5
+    #define BLUR_SIZE 2
 
-    __global__ void blur(float *image, float *image_blur, int *dims) {
-        int col = blockIdx.x * blockDim.x + threadIdx.x;
-        int row = blockIdx.y * blockDim.y + threadIdx.y;
-        int width = dims[0];
-        int height = dims[1];
+    __global__ void blur(float *image, float *image_blur, int *mask, int *dims) {
+        int row_i = blockIdx.x * blockDim.x + threadIdx.x;
+        int col_i = blockIdx.y * blockDim.y + threadIdx.y;
+        int image_width = dims[0];
+        int image_height = dims[1];
 
-        if (col < width && row < height) {
-            int indexI3 = (row * width + col)*CHANNELS;
+        if (col_i < image_width && row_i < image_height) {
+            int indexI3 = (row_i * image_width + col_i)*CHANNELS;
             int pixValR = 0;
             int pixValG = 0;
             int pixValB = 0;
@@ -26,15 +26,15 @@ mod = SourceModule("""
 
             for(int blurRow = -BLUR_SIZE; blurRow < BLUR_SIZE+1; ++blurRow) {
                 for(int blurCol = -BLUR_SIZE; blurCol < BLUR_SIZE+1; ++blurCol) {
-                    int curRow = row + blurRow;
-                    int curCol = col + blurCol;
-                    int indexB3 = (curRow * width + curCol)*CHANNELS;
+                    int curRow = row_i + (blurRow*CHANNELS);
+                    int curCol = col_i + (blurCol*CHANNELS);
+                    int indexB3 = (curRow * image_width + curCol)*CHANNELS;
                     
-                    if(curRow > -1 && curRow < height && curCol > -1 && curCol < width) {
-                        pixValR += image[indexB3];
-                        pixValG += image[indexB3+1];
-                        pixValB += image[indexB3+2];
-                        pixels++;
+                    if(curRow > -1 && curRow < image_height && curCol > -1 && curCol < image_width) {
+                        pixValR += image[indexB3] * mask[(BLUR_SIZE-blurCol) + (BLUR_SIZE-blurRow)*(2*BLUR_SIZE+1)];
+                        pixValG += image[indexB3+1] * mask[(BLUR_SIZE-blurCol) + (BLUR_SIZE-blurRow)*(2*BLUR_SIZE+1)];
+                        pixValB += image[indexB3+2] * mask[(BLUR_SIZE-blurCol) + (BLUR_SIZE-blurRow)*(2*BLUR_SIZE+1)];
+                        pixels += mask[(BLUR_SIZE-blurCol) + (BLUR_SIZE-blurRow)*(2*BLUR_SIZE+1)];
                     }
                 }
             }
@@ -51,7 +51,7 @@ def product(vector):
         p *= vi
     return p
 
-def parallel(input_name="test.jpg", output_name="test_blur.jpg"):
+def parallel(input_name="test.jpeg", output_name="test_blur.jpeg"):
     # get kernel
     blur_kernel = mod.get_function("blur")    
     # get image    
@@ -62,8 +62,10 @@ def parallel(input_name="test.jpg", output_name="test_blur.jpg"):
     # change dimension to linear
     image = image.reshape(product(image.shape))
     image_blur = np.zeros_like(image).reshape(product(image.shape))
+    mask = np.array([[1,4,7,4,1],[4,16,26,16,4],[7,26,41,26,7],[4,16,26,16,4],[1,4,7,4,1]]) 
+    mask = mask.reshape(product(mask.shape)).astype(np.int32)
     # convert image to grayscale
-    blur_kernel(cuda.In(image), cuda.InOut(image_blur), cuda.In(dims),
+    blur_kernel(cuda.InOut(image), cuda.InOut(image_blur), cuda.InOut(mask), cuda.In(dims),
         block=(TPB, TPB, 1), grid=( int((width+TPB)//TPB), int((height+TPB)//TPB), 1) )
     # save image
     imsave(output_name, image_blur.reshape(width, height, channels))
